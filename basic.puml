@@ -1,0 +1,38 @@
+@startuml
+
+actor User
+participant "Браузер" as Browser
+participant "Spring Security" as SpringSecurity
+participant "DispatcherServlet" as DispatcherServlet
+participant "FilterChainProxy" as FilterChainProxy
+participant "UsernamePasswordAuthenticationFilter" as AuthFilter
+participant "UsernamePasswordAuthenticationToken" as AuthToken
+participant "AuthenticationConverter" as AuthConverter
+participant "HttpServletRequest" as HttpServletRequest
+participant "AuthenticationManager" as AuthManager
+participant "ProviderManager" as ProviderManager
+participant "AuthenticationProvider" as AuthProvider
+participant "DaoAuthenticationProvider" as DaoAuthProvider
+participant "UserDetailsService" as UserDetailsService
+
+User -> Browser: Отправить HTTP-запрос
+Browser -> DispatcherServlet: Перенаправить запрос
+DispatcherServlet -> FilterChainProxy: Вызвать цепочку фильтров
+FilterChainProxy -> AuthFilter: Вызвать метод doFilter
+AuthFilter -> AuthConverter: Вызвать метод convert с HttpServletRequest
+AuthConverter --> AuthFilter: Вернуть объект Authentication (UsernamePasswordAuthenticationToken)
+AuthFilter -> AuthManager: Передать Authentication в AuthenticationManager
+AuthManager -> ProviderManager: Делегировать аутентификацию в ProviderManager
+ProviderManager -> AuthProvider: Аутентификация с использованием AuthProvider
+AuthProvider -> DaoAuthProvider: Аутентификация через DaoAuthenticationProvider
+DaoAuthProvider -> UserDetailsService: Загрузка информации о пользователе
+UserDetailsService --> DaoAuthProvider: Вернуть информацию о пользователе
+DaoAuthProvider --> AuthProvider: Вернуть Authenticated Token
+AuthProvider --> ProviderManager: Вернуть Authenticated Token
+ProviderManager --> AuthManager: Вернуть Authenticated Token
+AuthManager --> AuthFilter: Вернуть Authenticated Token
+AuthFilter --> FilterChainProxy: Продолжить цепочку фильтров
+FilterChainProxy -> DispatcherServlet: Диспетчеризовать запрос
+DispatcherServlet -> Browser: Вернуть HTTP-ответ
+
+@enduml

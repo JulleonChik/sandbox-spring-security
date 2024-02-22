@@ -1,0 +1,43 @@
+@startuml
+!define AUTOBOX auto
+
+actor User
+participant "Spring Security" as Security
+participant "Spring Framework\nDispatcherServlet" as Dispatcher
+
+box Application
+    participant "Security Filter Chain" as FilterChain
+    participant "UsernamePasswordAuthenticationFilter" as AuthFilter
+    participant "AuthenticationManager" as AuthManager
+    participant "ProviderManager" as ProviderManager
+    participant "UserDetailsService" as UserDetailsService
+    participant "DaoAuthenticationProvider" as DaoAuthProvider
+    participant "Controller" as Controller
+    participant "Service" as Service
+    participant "Repository" as Repository
+end box
+
+User -> Dispatcher: HTTP Request
+Dispatcher -> FilterChain: Invoke Filter Chain
+
+FilterChain -> AuthFilter: Process Request
+AuthFilter -> AuthFilter: Extract Credentials
+AuthFilter -> AuthManager: Attempt Authentication
+
+AuthManager -> ProviderManager: Delegate Authentication
+ProviderManager -> DaoAuthProvider: Authenticate using DaoAuthProvider
+DaoAuthProvider -> UserDetailsService: Load User by Username
+UserDetailsService --> DaoAuthProvider: Return User Details
+DaoAuthProvider --> ProviderManager: Return Authenticated Token
+ProviderManager --> AuthFilter: Return Authenticated Token
+
+AuthFilter -> FilterChain: Continue Filter Chain
+
+FilterChain -> Controller: Dispatch Request
+Controller -> Service: Process Request
+Service -> Repository: Access Data
+Repository --> Service: Return Data
+Service --> Controller: Return Processed Data
+Controller --> FilterChain: Return Response
+FilterChain --> User: HTTP Response
+@enduml
