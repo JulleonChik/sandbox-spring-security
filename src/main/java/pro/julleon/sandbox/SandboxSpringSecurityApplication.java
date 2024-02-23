@@ -1,27 +1,22 @@
 package pro.julleon.sandbox;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
+import pro.julleon.sandbox.services.JdbcUserDetailService;
 
-import java.io.IOException;
+import javax.sql.DataSource;
 import java.util.Map;
 
 @SpringBootApplication
@@ -31,49 +26,49 @@ public class SandboxSpringSecurityApplication {
         SpringApplication.run(SandboxSpringSecurityApplication.class, args);
     }
 
-
-    /*
-AuthenticationEntryPoint - это интерфейс в Spring Security, предназначенный для обработки ситуаций,
-когда пользователь не прошел аутентификацию, но доступ к защищенному ресурсу требуется.
-Этот интерфейс определяет метод commence, который вызывается, когда происходит подобная ситуация.
-
-public interface AuthenticationEntryPoint {
-    void commence(HttpServletRequest request, HttpServletResponse response,
-                  AuthenticationException authException) throws IOException, ServletException;
-}
-commence: Метод вызывается, когда пользователь пытается получить доступ к защищенному ресурсу без аутентификации.
-Этот метод принимает HttpServletRequest, HttpServletResponse и AuthenticationException.
-Разработчик может использовать эти параметры для выполнения необходимых действий,
-таких как перенаправление пользователя на страницу входа или отправка пользователю сообщения об ошибке.
-     */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        // Создаем объект BasicAuthenticationEntryPoint для обработки базовой аутентификации
-        BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+    public UserDetailsService userDetailsService(DataSource dataSource) {
+        return new JdbcUserDetailService(dataSource);
+    }
 
-        // Устанавливаем имя области (Realm) для объекта BasicAuthenticationEntryPoint
-        authenticationEntryPoint.setRealmName("Realm");
 
-        // Настраиваем HTTP Security
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                // Включаем базовую аутентификацию
-                .httpBasic(httpSecurityHttpBasicConfigurer ->
-                        httpSecurityHttpBasicConfigurer.authenticationEntryPoint(authenticationEntryPoint)
-                )
-
-                // Устанавливаем правило для авторизации всех HTTP-запросов (все должны быть аутентифицированы)
+                .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry.anyRequest().authenticated()
-                )
-
-                // Настраиваем обработку исключений, в частности, указываем точку входа в систему
-                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
-                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
-                )
-
-                // Собираем и возвращаем SecurityFilterChain
+                        authorizationManagerRequestMatcherRegistry.anyRequest().authenticated())
                 .build();
     }
+
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+//        // Создаем объект BasicAuthenticationEntryPoint для обработки базовой аутентификации
+//        BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+//
+//        // Устанавливаем имя области (Realm) для объекта BasicAuthenticationEntryPoint
+//        authenticationEntryPoint.setRealmName("Realm");
+//
+//        // Настраиваем HTTP Security
+//        return httpSecurity
+//                // Включаем базовую аутентификацию
+//                .httpBasic(httpSecurityHttpBasicConfigurer ->
+//                        httpSecurityHttpBasicConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+//                )
+//
+//                // Устанавливаем правило для авторизации всех HTTP-запросов (все должны быть аутентифицированы)
+//                .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
+//                        authorizationManagerRequestMatcherRegistry.anyRequest().authenticated()
+//                )
+//
+//                // Настраиваем обработку исключений, в частности, указываем точку входа в систему
+//                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+//                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authenticationEntryPoint)
+//                )
+//
+//                // Собираем и возвращаем SecurityFilterChain
+//                .build();
+//    }
 
 
 //    @Bean

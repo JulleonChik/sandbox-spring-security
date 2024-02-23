@@ -1,0 +1,11 @@
+spring:
+  security:
+    user:
+      password: password
+  sql:
+    init:
+      mode: always
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sandbox_spring_security
+    username: postgres
+    password: postgres
