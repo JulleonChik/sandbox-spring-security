@@ -1,3 +1,7 @@
+logging:
+  level:
+    org.springframework.security: trace
+
 spring:
   security:
     user:

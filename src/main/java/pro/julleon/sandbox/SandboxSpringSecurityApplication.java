@@ -1,22 +1,28 @@
 package pro.julleon.sandbox;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
 import pro.julleon.sandbox.services.JdbcUserDetailService;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.Map;
 
 @SpringBootApplication
@@ -37,7 +43,13 @@ public class SandboxSpringSecurityApplication {
         return httpSecurity
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry.anyRequest().authenticated())
+                        authorizationManagerRequestMatcherRegistry
+                                .requestMatchers("/public/test", "/error").permitAll()
+                                .anyRequest().authenticated())
+//                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+//                        httpSecurityExceptionHandlingConfigurer
+//                                .accessDeniedHandler((request, response, accessDeniedException) ->
+//                                        accessDeniedException.printStackTrace()))
                 .build();
     }
 

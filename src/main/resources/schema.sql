@@ -1,3 +1,8 @@
+-- Удаление таблиц
+DROP TABLE IF EXISTS t_user_authority;
+DROP TABLE IF EXISTS t_user_password;
+DROP TABLE IF EXISTS t_user;
+
 create table t_user(
     id int primary key,
     c_username varchar not null unique
